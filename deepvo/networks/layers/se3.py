@@ -25,10 +25,32 @@ def layer_xyzq(matrix_rt, scope='pose', name='xyzq'):
     # Rotation Matrix to quaternion + xyz
     with tf.variable_scope(scope):
         # See : http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-        qw = tf.sqrt(tf.reduce_sum(tf.matrix_diag_part(matrix_rt), axis=-1)) / 2.0
-        qx = (matrix_rt[:, 2, 1] - matrix_rt[:, 1, 2]) / (4 * qw)
-        qy = (matrix_rt[:, 0, 2] - matrix_rt[:, 2, 0]) / (4 * qw)
-        qz = (matrix_rt[:, 1, 0] - matrix_rt[:, 0, 1]) / (4 * qw)
+        trace = tf.reduce_sum(tf.matrix_diag_part(matrix_rt, axis=-1)) - 1.0
+
+        if trace > 0:
+            S = tf.sqrt(trace + 1.0) * 2
+            qw = 0.25 * S
+            qx = (matrix_rt[:, 2, 1] - matrix_rt[:, 1, 2]) / S
+            qy = (matrix_rt[:, 0, 2] - matrix_rt[:, 2, 0]) / S
+            qz = (matrix_rt[:, 1, 0] - matrix_rt[:, 0, 1]) / S
+        elif matrix_rt[:, 0, 0] > matrix_rt[:, 1, 1] and matrix_rt[:, 0, 0] > matrix_rt[:, 2, 2]:
+            S = tf.sqrt(1 + matrix_rt[:, 0, 0] - matrix_rt[:, 1, 1] - matrix_rt[:, 2, 2]) * 2
+            qw = (matrix_rt[:, 2, 1] - matrix_rt[:, 1, 2]) / S
+            qx = 0.25 * S
+            qy = (matrix_rt[:, 0, 1] + matrix_rt[:, 1, 0]) / S
+            qz = (matrix_rt[:, 0, 2] + matrix_rt[:, 2, 0]) / S
+        elif matrix_rt[:, 1, 1] > matrix_rt[:, 2, 2]:
+            S = tf.sqrt(1 + matrix_rt[:, 1, 1] - matrix_rt[:, 0, 0] - matrix_rt[:, 2, 2]) * 2
+            qw = (matrix_rt[:, 0, 2] - matrix_rt[:, 2, 0]) / S
+            qx = (matrix_rt[:, 0, 1] + matrix_rt[:, 1, 0]) / S
+            qy = 0.25 * S
+            qz = (matrix_rt[:, 1, 2] + matrix_rt[:, 2, 1]) / S
+        else:
+            S = tf.sqrt(1 + matrix_rt[:, 2, 2] - matrix_rt[:, 0, 0] - matrix_rt[:, 1, 1]) * 2
+            qw = (matrix_rt[:, 1, 0] - matrix_rt[:, 0, 1]) / S
+            qx = (matrix_rt[:, 0, 2] + matrix_rt[:, 2, 0]) / S
+            qy = (matrix_rt[:, 1, 2] + matrix_rt[:, 2, 1]) / S
+            qz = 0.25 * S
 
         x = matrix_rt[:, 0, 3]
         y = matrix_rt[:, 1, 3]
