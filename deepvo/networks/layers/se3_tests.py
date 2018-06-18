@@ -8,9 +8,11 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
+from deepvo.utils.dataset import DatasetKitti, rotation_matrix_to_quaternion
 from se3 import *
 from sophus import *
 from pyquaternion import Quaternion
+from deepvo.utils.config import ConfigManager as CM
 
 
 class SE3CompositeLayerTest(unittest.TestCase):
@@ -111,3 +113,30 @@ class SE3CompositeLayerTest(unittest.TestCase):
             q = Quaternion(o[0][0][:4])
             y, p, r = q.yaw_pitch_roll
             pass
+
+    def test_se3composite_kitti_ts1(self):
+        CM.set_cfg('deepvo')
+        CM.model()['train']['time_step'] = 20
+
+        d = DatasetKitti()
+
+        # prepare network
+        x = tf.placeholder(tf.float32, shape=(1, CM.model()['train']['time_step'], 6))
+        x_unstacked = tf.unstack(x, axis=1)
+        init_s = tf.placeholder(tf.float32, shape=(1, 4, 4))
+        l_se3comp = SE3CompositeLayer()
+        outputs, state = tf.nn.static_rnn(cell=l_se3comp,
+                                          inputs=x_unstacked,
+                                          initial_state=init_s,
+                                          dtype=tf.float32)
+        with tf.Session('') as sess:
+            prev_s = [np.identity(4, np.float32)]
+            for idx in range(20):
+                _, motion_batch, pose_batch, _ = d.get_next_batch()
+
+                o, s = sess.run([outputs, state], feed_dict={
+                    x: motion_batch,
+                    init_s: prev_s
+                })
+                # prev_s = s
+                pass
