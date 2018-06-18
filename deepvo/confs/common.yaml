@@ -1,0 +1,3 @@
+dataset:
+  kitti:
+    path: /data/public/rw/datasets/kitti/vo/dataset/
