@@ -29,9 +29,10 @@ class DeepVo:
 
         # motion
         xs = [tf.layers.dense(o, 128, activation=tf.nn.relu) for o in outputs]
-        du = [tf.layers.dense(x, 12, activation=tf.nn.relu) for x in xs]
+        du = [tf.layers.dense(x, 6, activation=tf.nn.relu) for x in xs]
 
         # pose : SE(3)
+
 
         return du
 

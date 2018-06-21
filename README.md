@@ -1,7 +1,15 @@
 # DeepVO
 DeepVO for Visual Odometry Implementation using Tensorflow.
 
-## Dependencies
+## Install
+
+### Build Custom Layers
+
+Custom layers are implemented, so you should build them before you use.
+
+See [This](deepvo/networks/layers/README.md).
+
+### Dependencies
 
 - For Test
   - PySophus : https://github.com/arntanguy/PySophus

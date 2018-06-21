@@ -86,7 +86,7 @@ class DatasetKitti:
                 img_path_series.append(img1_path)
 
                 cf = self._current_initial_frame
-                pose = get_ground_7d_poses(poses[cf, :], poses[i + 1, :])     # TODO : change the starting point.
+                pose = get_ground_6d_poses_quat(poses[cf, :], poses[i + 1, :])     # TODO : change the starting point.
                 pose_series.append(pose)
 
                 motion = get_ground_6d_poses(poses[i, :], poses[i + 1, :])
@@ -113,27 +113,37 @@ class DatasetKitti:
 #     angles = rotation_matrix_to_euler_angles(R)
 #     return np.concatenate((angles, pos))    # rpyxyz
 
+def p_to_se3(p):
+    SE3 = np.array([
+        [p[0], p[1], p[2], p[3]],
+        [p[4], p[5], p[6], p[7]],
+        [p[8], p[9], p[10], p[11]],
+        [0, 0, 0, 1]
+    ])
+    return SE3
+
+
 def get_ground_6d_poses(p, p2):
     """ For 6dof pose representaion """
-    pos1 = np.array([p[3], p[7], p[11]])
-    pos2 = np.array([p2[3], p2[7], p2[11]])
-    pos = pos2 - pos1
+    SE1 = p_to_se3(p)
+    SE2 = p_to_se3(p2)
 
-    R1 = np.array([[p[0], p[1], p[2]], [p[4], p[5], p[6]], [p[8], p[9], p[10]]])
-    R2 = np.array([[p2[0], p2[1], p2[2]], [p2[4], p2[5], p2[6]], [p2[8], p2[9], p2[10]]])
-    angles = rotation_matrix_to_euler_angles(np.matmul(np.linalg.inv(R1), R2))
+    SE12 = np.matmul(np.linalg.inv(SE1), SE2)
+
+    pos = np.array([SE12[0][3], SE12[1][3], SE12[2][3]])
+    angles = rotation_matrix_to_euler_angles(SE12[:3, :3])
     return np.concatenate((angles, pos))    # rpyxyz
 
 
-def get_ground_7d_poses(p, p2):
+def get_ground_6d_poses_quat(p, p2):
     """ For 6dof pose representaion """
-    pos1 = np.array([p[3], p[7], p[11]])
-    pos2 = np.array([p2[3], p2[7], p2[11]])
-    pos = pos2 - pos1
+    SE1 = p_to_se3(p)
+    SE2 = p_to_se3(p2)
 
-    R1 = np.array([[p[0], p[1], p[2]], [p[4], p[5], p[6]], [p[8], p[9], p[10]]])
-    R2 = np.array([[p2[0], p2[1], p2[2]], [p2[4], p2[5], p2[6]], [p2[8], p2[9], p2[10]]])
-    quat = rotation_matrix_to_quaternion(np.matmul(np.linalg.inv(R1), R2))
+    SE12 = np.matmul(np.linalg.inv(SE1), SE2)
+
+    pos = np.array([SE12[0][3], SE12[1][3], SE12[2][3]])
+    quat = rotation_matrix_to_quaternion(SE12[:3, :3])
     return np.concatenate((quat, pos))    # qxyz
 
 
@@ -184,5 +194,5 @@ if __name__ == '__main__':
     CM.model()['train']['time_step'] = 1
 
     d = DatasetKitti()
-    batch = d.get_next_batch()
+    _, motion1, pose1, _ = d.get_next_batch()
     pass
