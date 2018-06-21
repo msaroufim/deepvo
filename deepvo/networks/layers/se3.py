@@ -24,8 +24,14 @@ def layer_matrix_rt(xyzw):
 def layer_xyzq(matrix_rt, scope='pose', name='xyzq'):
     # Rotation Matrix to quaternion + xyz
     with tf.variable_scope(scope):
+        qw = tf.sqrt(tf.reduce_sum(tf.matrix_diag_part(matrix_rt), axis=-1)) / 2.0
+        qx = (matrix_rt[:, 2, 1] - matrix_rt[:, 1, 2]) / (4 * qw)
+        qy = (matrix_rt[:, 0, 2] - matrix_rt[:, 2, 0]) / (4 * qw)
+        qz = (matrix_rt[:, 1, 0] - matrix_rt[:, 0, 1]) / (4 * qw)
+
+        '''
         # See : http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-        trace = tf.reduce_sum(tf.matrix_diag_part(matrix_rt, axis=-1)) - 1.0
+        trace = tf.reduce_sum(tf.matrix_diag_part(matrix_rt), axis=-1) - 1.0
 
         if trace > 0:
             S = tf.sqrt(trace + 1.0) * 2
@@ -51,6 +57,7 @@ def layer_xyzq(matrix_rt, scope='pose', name='xyzq'):
             qx = (matrix_rt[:, 0, 2] + matrix_rt[:, 2, 0]) / S
             qy = (matrix_rt[:, 1, 2] + matrix_rt[:, 2, 1]) / S
             qz = 0.25 * S
+        '''
 
         x = matrix_rt[:, 0, 3]
         y = matrix_rt[:, 1, 3]
