@@ -71,7 +71,7 @@ class SE3CompositeLayer(LayerRNNCell):
     def __init__(self, reuse=None, name=None):
         super(LayerRNNCell, self).__init__(_reuse=reuse, name=name)
 
-        self._state_size = tensor_shape.TensorShape([None, 4, 4])       # Accumulated SE3 Matrix
+        self._state_size = tensor_shape.TensorShape([None, 4, 4]) # Accumulated SE3 Matrix
         self._output_size = tensor_shape.TensorShape([None, 7])   # xyz + q
 
     @property
