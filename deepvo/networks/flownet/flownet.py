@@ -20,7 +20,7 @@ class Flownet:
     def get_weight_path(self):
         pass
 
-    def initailize(self, tf_sess):
+    def initialize(self, tf_sess):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../', self.get_weight_path())
         with open(path, 'rb') as f:
             weights = np.load(f)
@@ -114,4 +114,4 @@ if __name__ == '__main__':
     flownet_s.build(img_a, img_b)
 
     tf_sess = tf.Session()
-    flownet_s.initailize(tf_sess)
+    flownet_s.initialize(tf_sess)
